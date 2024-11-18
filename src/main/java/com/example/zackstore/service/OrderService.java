@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,6 +37,27 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
+    @Transactional
+    public Order updateOrder(Long orderId, OrderRequest orderRequest) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        User user = getUser(orderRequest.getUserId());
+        List<Product> products = getProducts(orderRequest.getProductIds());
+
+        order.setUser(user);
+        order.setOrderItems(products.stream().map(product -> {
+            OrderItem orderItem = new OrderItem();
+            orderItem.setProduct(product);
+            orderItem.setOrder(order);
+            return orderItem;
+        }).collect(Collectors.toList()));
+        order.setTotalAmount(orderRequest.getTotalAmount());
+        order.setStatus(orderRequest.getStatus());
+
+        return orderRepository.save(order);
+    }
+
     private User getUser(Long userId) {
         return userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
     }
@@ -56,5 +78,9 @@ public class OrderService {
             return orderItem;
         }).collect(Collectors.toList()));
         return order;
+    }
+
+    public Optional<Order> getOrderById(Long orderId) {
+        return orderRepository.findById(orderId);
     }
 }
