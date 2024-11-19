@@ -83,4 +83,12 @@ public class OrderService {
     public Optional<Order> getOrderById(Long orderId) {
         return orderRepository.findById(orderId);
     }
+
+    public void deleteOrder(Long orderId) {
+        orderRepository.deleteById(orderId);
+    }
+
+    public Iterable<Order> getAllOrders() {
+        return orderRepository.findAll();
+    }
 }

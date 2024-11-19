@@ -1,6 +1,8 @@
 package com.example.zackstore.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
+import lombok.Getter;
 
 @Entity
 @Table(name = "order_items")
@@ -8,45 +10,37 @@ public class OrderItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long orderItemId;
 
+    @Getter
     @ManyToOne
     @JoinColumn(name = "order_id")
+    @JsonBackReference
     private Order order;
 
+    @Getter
     @ManyToOne
     @JoinColumn(name = "product_id")
     private Product product;
 
+    @Getter
     private int quantity;
 
     // Getters and setters
     public Long getId() {
-        return id;
+        return orderItemId;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Order getOrder() {
-        return order;
+    public void setId(Long OrderItemId) {
+        this.orderItemId = OrderItemId;
     }
 
     public void setOrder(Order order) {
         this.order = order;
     }
 
-    public Product getProduct() {
-        return product;
-    }
-
     public void setProduct(Product product) {
         this.product = product;
-    }
-
-    public int getQuantity() {
-        return quantity;
     }
 
     public void setQuantity(int quantity) {

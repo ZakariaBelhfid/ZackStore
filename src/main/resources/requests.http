@@ -42,22 +42,6 @@ Content-Type: application/json
   "description": "Iphone 12",
   "price": 1200.0}
 
-
-### get all orders
-GET http://localhost:8080/api/orders
-### get order by id
-GET http://localhost:8080/api/orders/1
-### update a order
-PUT http://localhost:8080/api/orders/1
-### create a order
-POST http://localhost:8080/api/orders
-Content-Type: application/json
-
-{
-  "userId": 1,
-  "productIds": [1]
-}
-
 ### get all order items
 GET http://localhost:8080/api/orderItems
 ### get order item by id
@@ -77,5 +61,24 @@ Content-Type: application/json
   },
   "quantity": 1
 }
+
+### get all orders
+GET http://localhost:8080/api/orders
+### get order by id
+GET http://localhost:8080/api/orders/1
+### update a order
+PUT http://localhost:8080/api/orders/1
+### create a order
+POST http://localhost:8080/api/orders
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "productIds": [1]
+}
+### delete order
+DELETE http://localhost:8080/api/orders/1
+
+
 
 

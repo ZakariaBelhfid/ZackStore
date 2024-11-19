@@ -15,6 +15,10 @@ public class OrderController {
     @Autowired
     private OrderService orderService;
 
+    @GetMapping
+    public Iterable<Order> getAllOrders() {
+        return orderService.getAllOrders();
+    }
     @GetMapping("/{orderId}")
     public Optional<Order> getOrderById(@PathVariable Long orderId) {
         return orderService.getOrderById(orderId);
@@ -28,6 +32,11 @@ public class OrderController {
     @PostMapping
     public Order createOrder(@RequestBody OrderRequest orderRequest) {
         return orderService.createOrder(orderRequest);
+    }
+
+    @DeleteMapping("/{orderId}")
+    public void deleteOrder(@PathVariable Long orderId) {
+        orderService.deleteOrder(orderId);
     }
 
 

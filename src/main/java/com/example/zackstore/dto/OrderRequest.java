@@ -8,7 +8,9 @@ import java.util.List;
 public class OrderRequest {
     private Long userId;
     private List<Long> productIds;
+    @Getter
     private Double totalAmount;
+    @Getter
     private String status;
 
     public void setUserId(Long userId) {
@@ -27,11 +29,4 @@ public class OrderRequest {
         this.status = status;
     }
 
-    public Double getTotalAmount() {
-        return totalAmount;
-    }
-
-    public String getStatus() {
-        return status;
-    }
 }
