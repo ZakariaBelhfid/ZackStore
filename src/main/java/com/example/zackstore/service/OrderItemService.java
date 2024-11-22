@@ -1,14 +1,15 @@
 package com.example.zackstore.service;
 
-import com.example.zackstore.model.Order;
+import com.example.zackstore.dto.OrderItemDTO;
+import com.example.zackstore.mapper.OrderItemMapper;
 import com.example.zackstore.model.OrderItem;
 import com.example.zackstore.repository.OrderItemRepository;
-import com.example.zackstore.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class OrderItemService {
@@ -17,23 +18,23 @@ public class OrderItemService {
     private OrderItemRepository orderItemRepository;
 
     @Autowired
-    private OrderRepository orderRepository;
+    private OrderItemMapper orderItemMapper;
 
-    public List<OrderItem> getAllOrderItems() {
-        return orderItemRepository.findAll();
+    public List<OrderItemDTO> getAllOrderItems() {
+        return orderItemRepository.findAll().stream()
+                .map(orderItemMapper::orderItemToOrderItemDTO)
+                .collect(Collectors.toList());
     }
 
-    public Optional<OrderItem> getOrderItemById(Long orderItemId) {
-        return orderItemRepository.findById(orderItemId);
+    public Optional<OrderItemDTO> getOrderItemById(Long orderItemId) {
+        return orderItemRepository.findById(orderItemId)
+                .map(orderItemMapper::orderItemToOrderItemDTO);
     }
 
-    public OrderItem createOrderItem(OrderItem orderItem) {
-        Order order = orderItem.getOrder();
-        if (order != null && order.getOrderId() == null) {
-            order = orderRepository.save(order);
-            orderItem.setOrder(order);
-        }
-        return orderItemRepository.save(orderItem);
+    public OrderItemDTO createOrderItem(OrderItemDTO orderItemDTO) {
+        OrderItem orderItem = orderItemMapper.orderItemDTOToOrderItem(orderItemDTO);
+        OrderItem savedOrderItem = orderItemRepository.save(orderItem);
+        return orderItemMapper.orderItemToOrderItemDTO(savedOrderItem);
     }
 
     public void deleteOrderItem(Long orderItemId) {

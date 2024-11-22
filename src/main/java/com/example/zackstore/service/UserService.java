@@ -1,6 +1,5 @@
 package com.example.zackstore.service;
 
-import com.example.zackstore.exceptions.ResourceNotFoundException;
 import com.example.zackstore.model.User;
 import com.example.zackstore.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,10 +27,12 @@ public class UserService {
     }
 
     public User updateUser(Long id, User userDetails) {
-        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
         user.setUsername(userDetails.getUsername());
-        user.setPassword(userDetails.getPassword());
         user.setEmail(userDetails.getEmail());
+        user.setPassword(userDetails.getPassword());
+        user.setAddress(userDetails.getAddress());
+        user.setRole(userDetails.getRole());
         return userRepository.save(user);
     }
 

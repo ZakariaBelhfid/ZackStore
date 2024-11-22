@@ -1,6 +1,6 @@
 package com.example.zackstore.controller;
 
-import com.example.zackstore.model.OrderItem;
+import com.example.zackstore.dto.OrderItemDTO;
 import com.example.zackstore.service.OrderItemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -15,18 +15,18 @@ public class OrderItemController {
     private OrderItemService orderItemService;
 
     @GetMapping
-    public List<OrderItem> getAllOrderItems() {
+    public List<OrderItemDTO> getAllOrderItems() {
         return orderItemService.getAllOrderItems();
     }
 
     @GetMapping("/{orderItemId}")
-    public OrderItem getOrderItemById(@PathVariable Long orderItemId) {
+    public OrderItemDTO getOrderItemById(@PathVariable Long orderItemId) {
         return orderItemService.getOrderItemById(orderItemId).orElse(null);
     }
 
     @PostMapping
-    public OrderItem createOrderItem(@RequestBody OrderItem orderItem) {
-        return orderItemService.createOrderItem(orderItem);
+    public OrderItemDTO createOrderItem(@RequestBody OrderItemDTO orderItemDTO) {
+        return orderItemService.createOrderItem(orderItemDTO);
     }
 
     @DeleteMapping("/{orderItemId}")

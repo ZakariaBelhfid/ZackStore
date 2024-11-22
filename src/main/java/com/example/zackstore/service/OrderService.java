@@ -1,17 +1,20 @@
 package com.example.zackstore.service;
 
-import com.example.zackstore.dto.OrderRequest;
+import com.example.zackstore.dto.OrderDTO;
+import com.example.zackstore.dto.OrderRequestDTO;
+import com.example.zackstore.mapper.OrderMapper;
 import com.example.zackstore.model.Order;
 import com.example.zackstore.model.OrderItem;
-import com.example.zackstore.model.Product;
 import com.example.zackstore.model.User;
 import com.example.zackstore.repository.OrderRepository;
-import com.example.zackstore.repository.ProductRepository;
+import com.example.zackstore.repository.OrderItemRepository;
 import com.example.zackstore.repository.UserRepository;
+import com.example.zackstore.mapper.OrderItemMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -23,72 +26,83 @@ public class OrderService {
     private OrderRepository orderRepository;
 
     @Autowired
+    private OrderMapper orderMapper;
+
+    @Autowired
     private UserRepository userRepository;
 
     @Autowired
-    private ProductRepository productRepository;
+    private OrderItemRepository orderItemRepository;
+
+    @Autowired
+    private OrderItemMapper orderItemMapper;
 
     @Transactional
-    public Order createOrder(OrderRequest orderRequest) {
-        User user = getUser(orderRequest.getUserId());
-        List<Product> products = getProducts(orderRequest.getProductIds());
+    public OrderDTO createOrder(OrderRequestDTO orderRequestDTO) {
+        // Fetch and set User
+        User user = userRepository.findById(orderRequestDTO.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid user ID"));
 
-        Order order = buildOrder(user, products);
-        return orderRepository.save(order);
-    }
+        // Create and save OrderItems
+        List<OrderItem> orderItems = Optional.ofNullable(orderRequestDTO.getOrderItems())
+                .orElse(Collections.emptyList())
+                .stream()
+                .map(orderItemDTO -> {
+                    OrderItem orderItem = orderItemMapper.orderItemDTOToOrderItem(orderItemDTO);
+                    return orderItemRepository.save(orderItem);
+                })
+                .collect(Collectors.toList());
 
-    @Transactional
-    public Order updateOrder(Long orderId, OrderRequest orderRequest) {
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
-
-        User user = getUser(orderRequest.getUserId());
-        List<Product> products = getProducts(orderRequest.getProductIds());
-
+        // Create and save Order
+        Order order = new Order();
         order.setUser(user);
-        order.setOrderItems(products.stream().map(product -> {
-            OrderItem orderItem = new OrderItem();
-            orderItem.setProduct(product);
-            orderItem.setOrder(order);
-            return orderItem;
-        }).collect(Collectors.toList()));
-        order.setTotalAmount(orderRequest.getTotalAmount());
-        order.setStatus(orderRequest.getStatus());
+        order.setOrderItems(orderItems);
+        order.setTotalAmount(orderRequestDTO.getTotalAmount());
+        order.setStatus(Order.OrderStatus.valueOf(orderRequestDTO.getStatus()));
 
-        return orderRepository.save(order);
+        Order savedOrder = orderRepository.save(order);
+        return orderMapper.orderToOrderDTO(savedOrder);
     }
 
-    private User getUser(Long userId) {
-        return userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
-    }
-
-    private List<Product> getProducts(List<Long> productIds) {
-        return productIds.stream()
-                .map(productId -> productRepository.findById(productId).orElseThrow(() -> new RuntimeException("Product not found")))
+    public List<OrderDTO> getAllOrders() {
+        return orderRepository.findAll().stream()
+                .map(orderMapper::orderToOrderDTO)
                 .collect(Collectors.toList());
     }
 
-    private Order buildOrder(User user, List<Product> products) {
-        Order order = new Order();
-        order.setUser(user);
-        order.setOrderItems(products.stream().map(product -> {
-            OrderItem orderItem = new OrderItem();
-            orderItem.setProduct(product);
-            orderItem.setOrder(order);
-            return orderItem;
-        }).collect(Collectors.toList()));
-        return order;
+    public Optional<OrderDTO> getOrderById(Long orderId) {
+        return orderRepository.findById(orderId)
+                .map(orderMapper::orderToOrderDTO);
     }
 
-    public Optional<Order> getOrderById(Long orderId) {
-        return orderRepository.findById(orderId);
+    public OrderDTO updateOrder(Long orderId, OrderRequestDTO orderRequestDTO) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid order ID"));
+
+        // Fetch and set User
+        User user = userRepository.findById(orderRequestDTO.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid user ID"));
+        order.setUser(user);
+
+        // Create and save OrderItems
+        List<OrderItem> orderItems = Optional.ofNullable(orderRequestDTO.getOrderItems())
+                .orElse(Collections.emptyList())
+                .stream()
+                .map(orderItemDTO -> {
+                    OrderItem orderItem = orderItemMapper.orderItemDTOToOrderItem(orderItemDTO);
+                    return orderItemRepository.save(orderItem);
+                })
+                .collect(Collectors.toList());
+        order.setOrderItems(orderItems);
+
+        order.setTotalAmount(orderRequestDTO.getTotalAmount());
+        order.setStatus(Order.OrderStatus.valueOf(orderRequestDTO.getStatus()));
+
+        Order updatedOrder = orderRepository.save(order);
+        return orderMapper.orderToOrderDTO(updatedOrder);
     }
 
     public void deleteOrder(Long orderId) {
         orderRepository.deleteById(orderId);
-    }
-
-    public Iterable<Order> getAllOrders() {
-        return orderRepository.findAll();
     }
 }
